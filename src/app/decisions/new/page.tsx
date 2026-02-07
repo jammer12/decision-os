@@ -164,7 +164,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
         title: title.trim() || "Measurement Decision",
         context,
         options: [],
-        outcome: advice || undefined,
+        outcome: undefined,
       });
       router.push(`/decisions/${decision.id}`);
     } catch (err) {
@@ -279,7 +279,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
           </div>
           <div className="mt-6 flex flex-col gap-3">
             <p className="text-sm text-[var(--muted)]">
-              Save this decision to access it later from your list.
+              Nerdy Executive uses your outcomes to learn and adjust future recommendations.
             </p>
             {saveError && (
               <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-600 dark:text-red-400">

@@ -23,8 +23,6 @@ export function DecisionCard({
   onDelete?: (id: string) => void;
   isDeleting?: boolean;
 }) {
-  const hasOutcome = !!decision.outcome?.trim();
-
   function handleDeleteClick(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -51,17 +49,6 @@ export function DecisionCard({
               </p>
             )}
           </div>
-          <span
-            className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
-            style={{
-              backgroundColor: hasOutcome
-                ? "color-mix(in srgb, var(--accent) 18%, transparent)"
-                : "var(--surface-hover)",
-              color: hasOutcome ? "var(--accent)" : "var(--muted)",
-            }}
-          >
-            {hasOutcome ? "Decided" : "Open"}
-          </span>
         </div>
         <p className="mt-3 text-xs text-[var(--muted)]">
           {formatDate(decision.createdAt)}
@@ -72,7 +59,11 @@ export function DecisionCard({
           type="button"
           onClick={handleDeleteClick}
           disabled={isDeleting}
-          className="shrink-0 self-start rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--muted)] transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
+          className="shrink-0 self-start rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors disabled:opacity-50"
+          style={{
+            backgroundColor: "var(--surface-hover)",
+            color: "var(--muted)",
+          }}
           aria-label="Delete decision"
         >
           {isDeleting ? "Deleting…" : "Delete"}
