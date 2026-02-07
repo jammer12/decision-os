@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { fetchDecisions } from "@/lib/supabase/decisions";
+import { fetchDecisions, removeDecision } from "@/lib/supabase/decisions";
 import type { Decision } from "@/lib/types";
 import { DecisionCard } from "@/components/decision-card";
 import { SignInGate } from "@/components/auth-ui";
@@ -12,6 +12,19 @@ export default function DecisionsPage() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<{ id: string } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    try {
+      await removeDecision(id);
+      setDecisions((prev) => prev.filter((d) => d.id !== id));
+    } catch {
+      // leave in list on error
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -92,7 +105,11 @@ export default function DecisionsPage() {
       <ul className="grid gap-4 sm:grid-cols-2">
         {decisions.map((d) => (
           <li key={d.id}>
-            <DecisionCard decision={d} />
+            <DecisionCard
+              decision={d}
+              onDelete={handleDelete}
+              isDeleting={deletingId === d.id}
+            />
           </li>
         ))}
       </ul>

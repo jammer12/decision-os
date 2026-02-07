@@ -14,40 +14,70 @@ function formatDate(iso: string) {
   return d.toLocaleDateString();
 }
 
-export function DecisionCard({ decision }: { decision: Decision }) {
+export function DecisionCard({
+  decision,
+  onDelete,
+  isDeleting,
+}: {
+  decision: Decision;
+  onDelete?: (id: string) => void;
+  isDeleting?: boolean;
+}) {
   const hasOutcome = !!decision.outcome?.trim();
 
+  function handleDeleteClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDeleting || !onDelete) return;
+    if (confirm("Delete this decision? This can't be undone.")) {
+      onDelete(decision.id);
+    }
+  }
+
   return (
-    <Link
-      href={`/decisions/${decision.id}`}
-      className="block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition-colors hover:border-[var(--accent)]/30 hover:bg-[var(--surface-hover)]"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h2 className="font-semibold text-[var(--foreground)] truncate">
-            {decision.title || "Untitled decision"}
-          </h2>
-          {decision.context && (
-            <p className="mt-1 line-clamp-2 text-sm text-[var(--muted)]">
-              {decision.context}
-            </p>
-          )}
+    <div className="flex gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition-colors hover:border-[var(--accent)]/30 hover:bg-[var(--surface-hover)]">
+      <Link
+        href={`/decisions/${decision.id}`}
+        className="min-w-0 flex-1"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-[var(--foreground)] truncate">
+              {decision.title || "Untitled decision"}
+            </h2>
+            {decision.context && (
+              <p className="mt-1 line-clamp-2 text-sm text-[var(--muted)]">
+                {decision.context}
+              </p>
+            )}
+          </div>
+          <span
+            className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
+            style={{
+              backgroundColor: hasOutcome
+                ? "color-mix(in srgb, var(--accent) 18%, transparent)"
+                : "var(--surface-hover)",
+              color: hasOutcome ? "var(--accent)" : "var(--muted)",
+            }}
+          >
+            {hasOutcome ? "Decided" : "Open"}
+          </span>
         </div>
-        <span
-          className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
-          style={{
-            backgroundColor: hasOutcome
-              ? "color-mix(in srgb, var(--accent) 18%, transparent)"
-              : "var(--surface-hover)",
-            color: hasOutcome ? "var(--accent)" : "var(--muted)",
-          }}
+        <p className="mt-3 text-xs text-[var(--muted)]">
+          {formatDate(decision.createdAt)}
+        </p>
+      </Link>
+      {onDelete && (
+        <button
+          type="button"
+          onClick={handleDeleteClick}
+          disabled={isDeleting}
+          className="shrink-0 self-start rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--muted)] transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
+          aria-label="Delete decision"
         >
-          {hasOutcome ? "Decided" : "Open"}
-        </span>
-      </div>
-      <p className="mt-3 text-xs text-[var(--muted)]">
-        {formatDate(decision.createdAt)}
-      </p>
-    </Link>
+          {isDeleting ? "Deleting…" : "Delete"}
+        </button>
+      )}
+    </div>
   );
 }

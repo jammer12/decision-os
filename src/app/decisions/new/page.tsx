@@ -110,6 +110,8 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
   const [advice, setAdvice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showTitleModal, setShowTitleModal] = useState(false);
+  const [titleInput, setTitleInput] = useState("Measurement Decision");
 
   async function handleGetAdvice(e: React.FormEvent) {
     e.preventDefault();
@@ -139,10 +141,16 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
     }
   }
 
-  async function handleSave() {
+  function openTitleModal() {
+    setTitleInput("Measurement Decision");
+    setSaveError(null);
+    setShowTitleModal(true);
+  }
+
+  async function handleSaveWithTitle(title: string) {
     setSaveError(null);
     setSaving(true);
-    const title = "Measurement Decision";
+    setShowTitleModal(false);
     const contextParts = [
       "Business problem: " + (businessProblem.trim() || "(not provided)"),
       "How quickly: " + (speed.trim() || "(not provided)"),
@@ -153,7 +161,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
 
     try {
       const decision = await insertDecision({
-        title,
+        title: title.trim() || "Measurement Decision",
         context,
         options: [],
         outcome: advice || undefined,
@@ -161,6 +169,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
       router.push(`/decisions/${decision.id}`);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Failed to save.");
+      setShowTitleModal(true);
     } finally {
       setSaving(false);
     }
@@ -280,7 +289,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={handleSave}
+                onClick={openTitleModal}
                 disabled={saving}
                 className="rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-foreground)] transition-opacity hover:opacity-90 disabled:opacity-60"
               >
@@ -293,15 +302,62 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
                 Skip
               </Link>
             </div>
-            <p className="text-xs text-[var(--muted)]">
-              Not signed in?{" "}
-              <Link href="/signin" className="text-[var(--accent)] hover:underline">
-                Sign in
-              </Link>{" "}
-              to save to your account (Supabase). Otherwise we’ll save to this device only.
-            </p>
           </div>
         </>
+      )}
+
+      {showTitleModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => !saving && setShowTitleModal(false)}
+          aria-modal="true"
+          role="dialog"
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-[var(--foreground)]">
+              Title this decision
+            </h3>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Give it a name so you can find it in your list.
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveWithTitle(titleInput);
+              }}
+              className="mt-4 flex flex-col gap-4"
+            >
+              <input
+                type="text"
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+                placeholder="e.g. Q1 metrics, Dashboard rollout"
+                autoFocus
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+              />
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-medium text-[var(--accent-foreground)] transition-opacity hover:opacity-90 disabled:opacity-60"
+                >
+                  {saving ? "Saving…" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => !saving && setShowTitleModal(false)}
+                  disabled={saving}
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
