@@ -15,13 +15,17 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-## 2. Create the decisions table
+## 2. Create the decisions table (private per user)
 
-In the Supabase dashboard, open **SQL Editor** and run the migration:
+In the Supabase dashboard, open **SQL Editor** and run the migrations in order:
 
-- Copy the contents of `supabase/migrations/001_decisions.sql` into a new query and run it.
+1. **First run** `supabase/migrations/001_decisions.sql`  
+   This creates the `decisions` table and Row Level Security (RLS) so each user only sees and edits their own rows.
 
-This creates the `decisions` table and Row Level Security so each user only sees their own rows.
+2. **If decisions are visible to everyone** (e.g. you created the table earlier without RLS), run `supabase/migrations/002_decisions_rls_policies.sql`  
+   This enables RLS and (re)creates the policies. Safe to run multiple times.
+
+The app always saves new decisions with the signed-in user’s `user_id`; RLS ensures no user can read or change another user’s decisions.
 
 ## 3. (Fastest path) Enable Email sign-in
 

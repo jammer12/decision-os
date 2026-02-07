@@ -1,16 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { insertDecision } from "@/lib/supabase/decisions";
-import { addDecision } from "@/lib/storage";
+import { SignInGate } from "@/components/auth-ui";
 
 type DecisionType = "measurement" | "people" | null;
 
 export default function NewDecisionPage() {
   const [decisionType, setDecisionType] = useState<DecisionType>(null);
+  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<{ id: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user: u } } = await supabase.auth.getUser();
+        if (!cancelled) setUser(u ?? null);
+      } catch {
+        // leave user null
+      } finally {
+        if (!cancelled) setMounted(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="text-sm text-[var(--muted)]">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SignInGate
+        title="Sign in to create a decision"
+        message="Decisions are saved to your account. Sign in to create one."
+        redirectTo="/"
+        next="/decisions/new"
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -113,24 +152,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
     const context = contextParts.join("\n\n");
 
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const decision = await insertDecision({
-          title,
-          context,
-          options: [],
-          outcome: advice || undefined,
-        });
-        setSaving(false);
-        router.push(`/decisions/${decision.id}`);
-        return;
-      }
-    } catch {
-      // Supabase not configured or not signed in — save locally
-    }
-    try {
-      const decision = addDecision({
+      const decision = await insertDecision({
         title,
         context,
         options: [],

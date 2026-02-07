@@ -4,29 +4,29 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { fetchDecisions } from "@/lib/supabase/decisions";
-import { getDecisions } from "@/lib/storage";
 import type { Decision } from "@/lib/types";
 import { DecisionCard } from "@/components/decision-card";
+import { SignInGate } from "@/components/auth-ui";
 
 export default function DecisionsPage() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<{ id: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user: u } } = await supabase.auth.getUser();
         if (cancelled) return;
-        if (user) {
+        setUser(u ?? null);
+        if (u) {
           const list = await fetchDecisions();
           if (!cancelled) setDecisions(list);
-        } else {
-          if (!cancelled) setDecisions(getDecisions());
         }
       } catch {
-        if (!cancelled) setDecisions(getDecisions());
+        // leave user null
       } finally {
         if (!cancelled) setMounted(true);
       }
@@ -41,6 +41,17 @@ export default function DecisionsPage() {
       <div className="flex min-h-[40vh] items-center justify-center">
         <p className="text-sm text-[var(--muted)]">Loading…</p>
       </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SignInGate
+        title="Sign in to view decisions"
+        message="Your decisions are stored in your account. Sign in to see them."
+        redirectTo="/"
+        next="/decisions"
+      />
     );
   }
 

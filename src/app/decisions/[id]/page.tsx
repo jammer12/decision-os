@@ -9,8 +9,8 @@ import {
   updateDecision as updateSupabaseDecision,
   removeDecision as removeSupabaseDecision,
 } from "@/lib/supabase/decisions";
-import { getDecisions, updateDecision, deleteDecision } from "@/lib/storage";
 import type { Decision } from "@/lib/types";
+import { SignInGate } from "@/components/auth-ui";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -24,7 +24,7 @@ export default function DecisionDetailPage() {
   const id = params.id as string;
   const [decision, setDecision] = useState<Decision | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [fromSupabase, setFromSupabase] = useState(false);
+  const [user, setUser] = useState<{ id: string } | null>(null);
   const [outcome, setOutcome] = useState("");
   const [editingOutcome, setEditingOutcome] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -34,27 +34,21 @@ export default function DecisionDetailPage() {
     (async () => {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user: u } } = await supabase.auth.getUser();
         if (cancelled) return;
-        if (user) {
+        setUser(u ?? null);
+        if (u) {
           const d = await fetchDecision(id);
           if (!cancelled && d) {
             setDecision(d);
             if (d.outcome) setOutcome(d.outcome);
-            setFromSupabase(true);
-            setMounted(true);
-            return;
           }
         }
       } catch {
-        // fall through to localStorage
+        // leave user null
+      } finally {
+        if (!cancelled) setMounted(true);
       }
-      if (cancelled) return;
-      const list = getDecisions();
-      const found = list.find((d) => d.id === id) ?? null;
-      setDecision(found);
-      if (found?.outcome) setOutcome(found.outcome);
-      setMounted(true);
     })();
     return () => {
       cancelled = true;
@@ -67,11 +61,7 @@ export default function DecisionDetailPage() {
     const newOutcome = outcome.trim();
     const decidedAt = newOutcome ? new Date().toISOString() : undefined;
     try {
-      if (fromSupabase) {
-        await updateSupabaseDecision(id, { outcome: newOutcome, decidedAt });
-      } else {
-        updateDecision(id, { outcome: newOutcome, decidedAt });
-      }
+      await updateSupabaseDecision(id, { outcome: newOutcome, decidedAt });
       setDecision((d) => (d ? { ...d, outcome: newOutcome, decidedAt } : null));
       setEditingOutcome(false);
     } finally {
@@ -83,11 +73,7 @@ export default function DecisionDetailPage() {
     if (!decision || !confirm("Delete this decision? This can't be undone."))
       return;
     try {
-      if (fromSupabase) {
-        await removeSupabaseDecision(id);
-      } else {
-        deleteDecision(id);
-      }
+      await removeSupabaseDecision(id);
       router.push("/decisions");
     } catch {
       // leave on page
@@ -99,6 +85,17 @@ export default function DecisionDetailPage() {
       <div className="flex min-h-[40vh] items-center justify-center">
         <p className="text-sm text-[var(--muted)]">Loading…</p>
       </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SignInGate
+        title="Sign in to view this decision"
+        message="Your decisions are in your account. Sign in to view and edit them."
+        redirectTo="/"
+        next={`/decisions/${id}`}
+      />
     );
   }
 
