@@ -58,16 +58,16 @@ export function HeaderNav() {
       {user && (
         <>
           <Link
-            href="/decisions"
-            className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-          >
-            Decisions
-          </Link>
-          <Link
             href="/decisions/new"
             className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-foreground)] transition-opacity hover:opacity-90"
           >
             New decision
+          </Link>
+          <Link
+            href="/decisions"
+            className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+          >
+            Decisions
           </Link>
           <Link
             href="/insights"
