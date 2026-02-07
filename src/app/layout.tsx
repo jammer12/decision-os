@@ -34,17 +34,17 @@ export default function RootLayout({
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
             <Link
               href="/"
-              className="flex items-center gap-2 text-lg font-semibold tracking-tight text-[var(--foreground)]"
+              className="flex items-center"
+              aria-label="Decision OS home"
             >
               <Image
                 src="/Nerdy logo_white.svg"
-                alt="Decision OS"
-                width={32}
-                height={32}
-                className="h-8 w-auto"
+                alt=""
+                width={160}
+                height={48}
+                className="h-6 w-auto sm:h-7"
                 priority
               />
-              <span>Decision OS</span>
             </Link>
             <nav className="flex items-center gap-6">
               <Link
