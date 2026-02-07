@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 
@@ -33,9 +34,17 @@ export default function RootLayout({
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
             <Link
               href="/"
-              className="text-lg font-semibold tracking-tight text-[var(--foreground)]"
+              className="flex items-center gap-2 text-lg font-semibold tracking-tight text-[var(--foreground)]"
             >
-              Decision OS
+              <Image
+                src="/Nerdy logo_white.svg"
+                alt="Decision OS"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+                priority
+              />
+              <span>Decision OS</span>
             </Link>
             <nav className="flex items-center gap-6">
               <Link
