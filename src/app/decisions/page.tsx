@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { fetchDecisions } from "@/lib/supabase/decisions";
 import { getDecisions } from "@/lib/storage";
 import type { Decision } from "@/lib/types";
 import { DecisionCard } from "@/components/decision-card";
@@ -11,10 +13,27 @@ export default function DecisionsPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    queueMicrotask(() => {
-      setDecisions(getDecisions());
-      setMounted(true);
-    });
+    let cancelled = false;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (user) {
+          const list = await fetchDecisions();
+          if (!cancelled) setDecisions(list);
+        } else {
+          if (!cancelled) setDecisions(getDecisions());
+        }
+      } catch {
+        if (!cancelled) setDecisions(getDecisions());
+      } finally {
+        if (!cancelled) setMounted(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (!mounted) {
