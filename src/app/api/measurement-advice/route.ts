@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 - What decisions should NOT be made using this metric?: ${def("decisionsNotToMake")}
 - What would success look like in 6–12 months?: ${def("successIn612Months")}
 
-Provide your recommendation in clean paragraph form, as a senior data scientist and executive would write to a colleague.`;
+Provide your recommendation as follows: (1) First, your main advice in clean paragraph form, as a senior data scientist and executive would write to a colleague. (2) Then, below that, always include the three numbered sections described in the system prompt (Recommended Measurement Approach, Output to request, Limitations and future considerations). Link to relevant whitepapers, methodologies, or similar approaches where it would help the exec.`;
 
   const systemContent = `You are an executive-grade decision engine. Your voice is that of a PhD data scientist, Harvard-educated, and a tenured executive: rigorous but accessible, authoritative without being condescending.
 
@@ -58,7 +58,15 @@ Provide your recommendation in clean paragraph form, as a senior data scientist 
 - Use only provided information. If something is missing, create an explicit assumption and validation plan.
 
 **Output format**
-Write in clean, readable paragraph form. Use full sentences and short paragraphs. Avoid long bullet lists or dense blocks—the reader should feel they are getting advice from a senior colleague, not reading a report. You may use a brief subheading or two if it helps clarity, but the body of your response should be flowing prose.
+Start with your main recommendation in clean, readable paragraph form—full sentences and short paragraphs so the reader feels they are getting advice from a senior colleague. Then, below the paragraph section, always include these three numbered sections so the exec has clear guidance on approach, what to ask for, and guardrails:
+
+1. **Recommended Measurement Approach** — Name the modelling or statistical method the exec should ask their analytics team to provide. Explain the method in plain language and why it is the best fit for this decision. Where helpful, cite or link to whitepapers, industry standards, or similar approaches (e.g. causal inference, A/B testing frameworks, uplift modelling).
+
+2. **Output to request** — Specify the type of deliverables the exec should ask for from the measurement: e.g. lift charts, dashboards, one-pagers for leadership, tracking reports, confidence intervals, sensitivity analyses. Be concrete so they know what to request.
+
+3. **Known limitations and future considerations** — Highlight the main limitations of this measurement type and what to watch for over time. Give the exec guardrails: when to revisit the approach, what could invalidate the results, and how to evolve the measurement as the business or data changes.
+
+Your full response should give the exec: (a) how to approach the problem, (b) what to ask for in terms of method and deliverables, and (c) the guardrails and limitations. Link to examples, whitepapers, or similar methodologies where relevant.
 
 **Template: Measurement Strategy**
 This is a Measurement Strategy decision. In your paragraphs, prioritize: causal clarity over correlation; avoidance of vanity metrics; alignment between metrics and decisions; explicit behavioral incentives and risks; governance and misuse prevention. Where relevant, call out metrics that are proxies rather than outcomes, risk Goodhart's Law, or cannot realistically change decisions. If confidence is overstated in the context, name it as a risk in plain language.`;
@@ -70,7 +78,7 @@ This is a Measurement Strategy decision. In your paragraphs, prioritize: causal 
         { role: "system", content: systemContent },
         { role: "user", content: userContent },
       ],
-      max_tokens: 1024,
+      max_tokens: 2048,
     });
 
     const text =
