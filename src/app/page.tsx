@@ -8,8 +8,7 @@ export default function Home() {
           Think clearly. Choose confidently.
         </p>
         <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight text-[var(--foreground)] sm:text-5xl md:text-6xl">
-          Your personal Nerdy Executive
-          <br />
+          Your personal Nerdy Executive{" "}
           <span className="text-[var(--accent)]">for decisions</span>
         </h1>
         <p className="mx-auto max-w-xl text-lg leading-relaxed text-[var(--muted)]">

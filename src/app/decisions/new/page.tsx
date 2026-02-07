@@ -100,21 +100,88 @@ export default function NewDecisionPage() {
   );
 }
 
+const inputClass =
+  "mt-2 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
+
 function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
   const router = useRouter();
-  const [businessProblem, setBusinessProblem] = useState("");
-  const [speed, setSpeed] = useState("");
-  const [teamSophistication, setTeamSophistication] = useState("");
+  const [decisionTitle, setDecisionTitle] = useState("");
+  const [measurementSupport, setMeasurementSupport] = useState("");
+  const [problemUnderstandControl, setProblemUnderstandControl] = useState("");
+  const [primaryOutcomes, setPrimaryOutcomes] = useState("");
+  const [leadingIndicators, setLeadingIndicators] = useState("");
+  const [laggingIndicators, setLaggingIndicators] = useState("");
+  const [unintendedBehaviors, setUnintendedBehaviors] = useState("");
+  const [dataSources, setDataSources] = useState("");
+  const [dataQualityLimitations, setDataQualityLimitations] = useState("");
+  const [measurementFrequency, setMeasurementFrequency] = useState("");
+  const [whoUsesMeasurement, setWhoUsesMeasurement] = useState("");
+  const [decisionsNotToMake, setDecisionsNotToMake] = useState("");
+  const [successIn612Months, setSuccessIn612Months] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [advice, setAdvice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showTitleModal, setShowTitleModal] = useState(false);
-  const [titleInput, setTitleInput] = useState("Measurement Decision");
+  const [titleInput, setTitleInput] = useState("");
+
+  function getPayload() {
+    return {
+      decisionTitle: decisionTitle.trim(),
+      measurementSupport: measurementSupport.trim(),
+      problemUnderstandControl: problemUnderstandControl.trim(),
+      primaryOutcomes: primaryOutcomes.trim(),
+      leadingIndicators: leadingIndicators.trim(),
+      laggingIndicators: laggingIndicators.trim(),
+      unintendedBehaviors: unintendedBehaviors.trim(),
+      dataSources: dataSources.trim(),
+      dataQualityLimitations: dataQualityLimitations.trim(),
+      measurementFrequency: measurementFrequency.trim(),
+      whoUsesMeasurement: whoUsesMeasurement.trim(),
+      decisionsNotToMake: decisionsNotToMake.trim(),
+      successIn612Months: successIn612Months.trim(),
+    };
+  }
+
+  function getContextParts() {
+    const p = getPayload();
+    return [
+      "Decision title: " + (p.decisionTitle || "(not provided)"),
+      "What decision(s) will this measurement support?: " + (p.measurementSupport || "(not provided)"),
+      "What problem are we trying to understand or control?: " + (p.problemUnderstandControl || "(not provided)"),
+      "Primary business outcome(s): " + (p.primaryOutcomes || "(not provided)"),
+      "Leading indicators: " + (p.leadingIndicators || "(not provided)"),
+      "Lagging indicators: " + (p.laggingIndicators || "(not provided)"),
+      "Unintended behaviors?: " + (p.unintendedBehaviors || "(not provided)"),
+      "Available data sources: " + (p.dataSources || "(not provided)"),
+      "Data quality limitations: " + (p.dataQualityLimitations || "(not provided)"),
+      "Measurement frequency required: " + (p.measurementFrequency || "(not provided)"),
+      "Who will use this measurement?: " + (p.whoUsesMeasurement || "(not provided)"),
+      "Decisions NOT to make with this metric?: " + (p.decisionsNotToMake || "(not provided)"),
+      "Success in 6–12 months?: " + (p.successIn612Months || "(not provided)"),
+    ];
+  }
 
   async function handleGetAdvice(e: React.FormEvent) {
     e.preventDefault();
+    const p = getPayload();
+    const required: [string, string][] = [
+      [p.decisionTitle, "Decision title"],
+      [p.measurementSupport, "What decision(s) will this measurement support?"],
+      [p.problemUnderstandControl, "What problem are we trying to understand or control?"],
+      [p.primaryOutcomes, "Primary business outcome(s)"],
+      [p.unintendedBehaviors, "What behaviors might this measurement unintentionally incentivize?"],
+      [p.dataSources, "Available data sources"],
+      [p.measurementFrequency, "Measurement frequency required"],
+      [p.whoUsesMeasurement, "Who will use this measurement to make decisions?"],
+      [p.successIn612Months, "What would success look like in 6–12 months?"],
+    ];
+    const missing = required.filter(([v]) => !v).map(([, label]) => label);
+    if (missing.length > 0) {
+      setError("Please complete all required fields: " + missing.slice(0, 3).join(", ") + (missing.length > 3 ? "…" : ""));
+      return;
+    }
     setError(null);
     setAdvice(null);
     setLoading(true);
@@ -122,11 +189,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
       const res = await fetch("/api/measurement-advice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          businessProblem: businessProblem.trim(),
-          speed: speed.trim(),
-          teamSophistication: teamSophistication.trim(),
-        }),
+        body: JSON.stringify(getPayload()),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -142,7 +205,7 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
   }
 
   function openTitleModal() {
-    setTitleInput("Measurement Decision");
+    setTitleInput(decisionTitle.trim() || "Measurement Decision");
     setSaveError(null);
     setShowTitleModal(true);
   }
@@ -151,17 +214,13 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
     setSaveError(null);
     setSaving(true);
     setShowTitleModal(false);
-    const contextParts = [
-      "Business problem: " + (businessProblem.trim() || "(not provided)"),
-      "How quickly: " + (speed.trim() || "(not provided)"),
-      "Team sophistication: " + (teamSophistication.trim() || "(not provided)"),
-    ];
+    const contextParts = getContextParts();
     if (advice) contextParts.push("\nRecommendation:\n" + advice);
     const context = contextParts.join("\n\n");
 
     try {
       const decision = await insertDecision({
-        title: title.trim() || "Measurement Decision",
+        title: title.trim() || decisionTitle.trim() || "Measurement Decision",
         context,
         options: [],
         outcome: undefined,
@@ -189,60 +248,78 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
         Measurement Decision
       </h2>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Answer the questions below to get a professional recommendation.
+        Complete the sections below to get a professional recommendation.
       </p>
 
-      <form onSubmit={handleGetAdvice} className="mt-6 flex flex-col gap-6">
-        <div>
-          <label
-            htmlFor="business-problem"
-            className="block text-sm font-medium text-[var(--foreground)]"
-          >
-            Explain your business problem
-          </label>
-          <textarea
-            id="business-problem"
-            value={businessProblem}
-            onChange={(e) => setBusinessProblem(e.target.value)}
-            placeholder="What are you trying to measure or improve? What’s the business context?"
-            rows={4}
-            className="mt-2 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
-          />
-        </div>
+      <form onSubmit={handleGetAdvice} className="mt-6 flex flex-col gap-8">
+        <section className="flex flex-col gap-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Basic framing</h3>
+          <div>
+            <label htmlFor="decision-title" className="block text-sm font-medium text-[var(--foreground)]">Decision title</label>
+            <input id="decision-title" type="text" value={decisionTitle} onChange={(e) => setDecisionTitle(e.target.value)} required className={inputClass} placeholder="e.g. Q1 revenue metrics" />
+          </div>
+          <div>
+            <label htmlFor="measurement-support" className="block text-sm font-medium text-[var(--foreground)]">What decision(s) will this measurement support? <span className="text-[var(--muted)]">(required)</span></label>
+            <textarea id="measurement-support" value={measurementSupport} onChange={(e) => setMeasurementSupport(e.target.value)} required rows={3} className={inputClass} placeholder="Decisions this measurement will inform" />
+          </div>
+          <div>
+            <label htmlFor="problem-understand" className="block text-sm font-medium text-[var(--foreground)]">What problem are we trying to understand or control? <span className="text-[var(--muted)]">(required)</span></label>
+            <textarea id="problem-understand" value={problemUnderstandControl} onChange={(e) => setProblemUnderstandControl(e.target.value)} required rows={3} className={inputClass} placeholder="The core problem or uncertainty" />
+          </div>
+        </section>
 
-        <div>
-          <label
-            htmlFor="speed"
-            className="block text-sm font-medium text-[var(--foreground)]"
-          >
-            How quickly do you want the measurement result?
-          </label>
-          <textarea
-            id="speed"
-            value={speed}
-            onChange={(e) => setSpeed(e.target.value)}
-            placeholder="e.g. Real-time, weekly, one-off report, within a quarter…"
-            rows={2}
-            className="mt-2 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
-          />
-        </div>
+        <section className="flex flex-col gap-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Metrics & outcomes</h3>
+          <div>
+            <label htmlFor="primary-outcomes" className="block text-sm font-medium text-[var(--foreground)]">Primary business outcome(s) <span className="text-[var(--muted)]">(required)</span></label>
+            <textarea id="primary-outcomes" value={primaryOutcomes} onChange={(e) => setPrimaryOutcomes(e.target.value)} required rows={3} className={inputClass} placeholder="Key outcomes you want to drive or track" />
+          </div>
+          <div>
+            <label htmlFor="leading-indicators" className="block text-sm font-medium text-[var(--foreground)]">Leading indicators you believe matter today</label>
+            <textarea id="leading-indicators" value={leadingIndicators} onChange={(e) => setLeadingIndicators(e.target.value)} rows={2} className={inputClass} placeholder="Early signals or predictors" />
+          </div>
+          <div>
+            <label htmlFor="lagging-indicators" className="block text-sm font-medium text-[var(--foreground)]">Lagging indicators currently used</label>
+            <textarea id="lagging-indicators" value={laggingIndicators} onChange={(e) => setLaggingIndicators(e.target.value)} rows={2} className={inputClass} placeholder="Existing outcome or results metrics" />
+          </div>
+          <div>
+            <label htmlFor="unintended-behaviors" className="block text-sm font-medium text-[var(--foreground)]">What behaviors might this measurement unintentionally incentivize? <span className="text-[var(--muted)]">(required)</span></label>
+            <textarea id="unintended-behaviors" value={unintendedBehaviors} onChange={(e) => setUnintendedBehaviors(e.target.value)} required rows={3} className={inputClass} placeholder="Gaming, tunnel vision, or misaligned incentives" />
+          </div>
+        </section>
 
-        <div>
-          <label
-            htmlFor="team-sophistication"
-            className="block text-sm font-medium text-[var(--foreground)]"
-          >
-            How sophisticated is your team for measurement?
-          </label>
-          <textarea
-            id="team-sophistication"
-            value={teamSophistication}
-            onChange={(e) => setTeamSophistication(e.target.value)}
-            placeholder="e.g. New to analytics, use dashboards regularly, have dedicated data team…"
-            rows={3}
-            className="mt-2 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
-          />
-        </div>
+        <section className="flex flex-col gap-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Data & feasibility</h3>
+          <div>
+            <label htmlFor="data-sources" className="block text-sm font-medium text-[var(--foreground)]">Available data sources <span className="text-[var(--muted)]">(required)</span></label>
+            <textarea id="data-sources" value={dataSources} onChange={(e) => setDataSources(e.target.value)} required rows={3} className={inputClass} placeholder="Systems, tools, or data you can use" />
+          </div>
+          <div>
+            <label htmlFor="data-quality" className="block text-sm font-medium text-[var(--foreground)]">Known data quality limitations</label>
+            <textarea id="data-quality" value={dataQualityLimitations} onChange={(e) => setDataQualityLimitations(e.target.value)} rows={2} className={inputClass} placeholder="Gaps, noise, or reliability issues" />
+          </div>
+          <div>
+            <label htmlFor="measurement-frequency" className="block text-sm font-medium text-[var(--foreground)]">Measurement frequency required <span className="text-[var(--muted)]">(required)</span></label>
+            <input id="measurement-frequency" type="text" value={measurementFrequency} onChange={(e) => setMeasurementFrequency(e.target.value)} required className={inputClass} placeholder="e.g. Daily, weekly, monthly, one-off" />
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Governance & risk</h3>
+          <div>
+            <label htmlFor="who-uses" className="block text-sm font-medium text-[var(--foreground)]">Who will use this measurement to make decisions? <span className="text-[var(--muted)]">(required)</span></label>
+            <textarea id="who-uses" value={whoUsesMeasurement} onChange={(e) => setWhoUsesMeasurement(e.target.value)} required rows={3} className={inputClass} placeholder="Roles, teams, or decision makers" />
+          </div>
+          <div>
+            <label htmlFor="decisions-not-to-make" className="block text-sm font-medium text-[var(--foreground)]">What decisions should NOT be made using this metric?</label>
+            <textarea id="decisions-not-to-make" value={decisionsNotToMake} onChange={(e) => setDecisionsNotToMake(e.target.value)} rows={2} className={inputClass} placeholder="Boundaries or misuse to avoid" />
+          </div>
+          <div>
+            <label htmlFor="success-6-12" className="block text-sm font-medium text-[var(--foreground)]">What would &quot;success&quot; look like in 6–12 months? <span className="text-[var(--muted)]">(required)</span></label>
+            <textarea id="success-6-12" value={successIn612Months} onChange={(e) => setSuccessIn612Months(e.target.value)} required rows={3} className={inputClass} placeholder="Concrete success criteria or outcomes" />
+          </div>
+        </section>
+
 
         {error && (
           <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-600 dark:text-red-400">
