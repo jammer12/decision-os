@@ -1,11 +1,11 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function SignInPage() {
+function SignInForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
   const [loading, setLoading] = useState(false);
@@ -67,5 +67,19 @@ export default function SignInPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-sm text-[var(--muted)]">Loading…</p>
+        </div>
+      }
+    >
+      <SignInForm />
+    </Suspense>
   );
 }
