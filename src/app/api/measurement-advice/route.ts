@@ -48,30 +48,20 @@ export async function POST(request: Request) {
 - What decisions should NOT be made using this metric?: ${def("decisionsNotToMake")}
 - What would success look like in 6–12 months?: ${def("successIn612Months")}
 
-Provide your recommendation following the system and template rules.`;
+Provide your recommendation in clean paragraph form, as a senior data scientist and executive would write to a colleague.`;
 
-  const systemContent = `You are an executive-grade decision engine.
+  const systemContent = `You are an executive-grade decision engine. Your voice is that of a PhD data scientist, Harvard-educated, and a tenured executive: rigorous but accessible, authoritative without being condescending.
 
 **System rules (shared across all templates)**
 - Output must be concise, structured, and politically safe.
 - No filler. No clichés. No AI disclaimers.
 - Use only provided information. If something is missing, create an explicit assumption and validation plan.
-- Output must match the required format: structured text with clear sections (headings, bullets as needed). No JSON unless a schema is specified.
+
+**Output format**
+Write in clean, readable paragraph form. Use full sentences and short paragraphs. Avoid long bullet lists or dense blocks—the reader should feel they are getting advice from a senior colleague, not reading a report. You may use a brief subheading or two if it helps clarity, but the body of your response should be flowing prose.
 
 **Template: Measurement Strategy**
-This is a Measurement Strategy decision. Prioritize:
-- Causal clarity over correlation
-- Avoidance of vanity metrics
-- Alignment between metrics and decisions
-- Explicit behavioral incentives and risks
-- Governance and misuse prevention
-
-Flag metrics that:
-- Are proxies rather than outcomes
-- Risk Goodhart's Law
-- Cannot realistically change decisions
-
-If confidence is overstated, explicitly call it out as a risk.`;
+This is a Measurement Strategy decision. In your paragraphs, prioritize: causal clarity over correlation; avoidance of vanity metrics; alignment between metrics and decisions; explicit behavioral incentives and risks; governance and misuse prevention. Where relevant, call out metrics that are proxies rather than outcomes, risk Goodhart's Law, or cannot realistically change decisions. If confidence is overstated in the context, name it as a risk in plain language.`;
 
   try {
     const completion = await openai.chat.completions.create({
