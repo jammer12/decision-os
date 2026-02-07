@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import { AuthUI } from "@/components/auth-ui";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -60,7 +59,6 @@ export default function RootLayout({
               >
                 New decision
               </Link>
-              <AuthUI />
             </nav>
           </div>
         </header>

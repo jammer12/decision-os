@@ -3,14 +3,8 @@
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import {
-  fetchDecision,
-  updateDecision as updateSupabaseDecision,
-  removeDecision as removeSupabaseDecision,
-} from "@/lib/supabase/decisions";
+import { getDecisions, updateDecision, deleteDecision } from "@/lib/storage";
 import type { Decision } from "@/lib/types";
-import { SignInGate } from "@/components/auth-ui";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -23,84 +17,26 @@ export default function DecisionDetailPage() {
   const router = useRouter();
   const id = params.id as string;
   const [decision, setDecision] = useState<Decision | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [signedIn, setSignedIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [outcome, setOutcome] = useState("");
   const [editingOutcome, setEditingOutcome] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (cancelled) return;
-        if (user) {
-          setSignedIn(true);
-          const d = await fetchDecision(id);
-          if (!cancelled && d) {
-            setDecision(d);
-            if (d.outcome) setOutcome(d.outcome);
-          } else if (!cancelled) {
-            setDecision(null);
-          }
-        }
-      } catch {
-        // Supabase not configured or error
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
+    queueMicrotask(() => {
+      const list = getDecisions();
+      const found = list.find((d) => d.id === id) ?? null;
+      setDecision(found);
+      if (found?.outcome) setOutcome(found.outcome);
+      setMounted(true);
+    });
   }, [id]);
 
-  async function handleSaveOutcome() {
-    if (saving || !decision) return;
-    setSaving(true);
-    const newOutcome = outcome.trim();
-    const decidedAt = newOutcome ? new Date().toISOString() : undefined;
-    try {
-      await updateSupabaseDecision(id, { outcome: newOutcome, decidedAt });
-      setDecision((d) => (d ? { ...d, outcome: newOutcome, decidedAt } : null));
-      setEditingOutcome(false);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!decision || !confirm("Delete this decision? This can't be undone."))
-      return;
-    try {
-      await removeSupabaseDecision(id);
-      router.push("/decisions");
-    } catch {
-      // leave on page
-    }
-  }
-
-  if (loading) {
+  if (!mounted) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
         <p className="text-sm text-[var(--muted)]">Loading…</p>
       </div>
-    );
-  }
-
-  if (!signedIn) {
-    return (
-      <SignInGate
-        title="Sign in to view this decision"
-        message="Sign in to access your decision journal."
-        redirectTo="/"
-        next={`/decisions/${id}`}
-      />
     );
   }
 
@@ -116,6 +52,24 @@ export default function DecisionDetailPage() {
         </Link>
       </div>
     );
+  }
+
+  function handleSaveOutcome() {
+    if (saving) return;
+    setSaving(true);
+    updateDecision(id, {
+      outcome: outcome.trim(),
+      decidedAt: outcome.trim() ? new Date().toISOString() : undefined,
+    });
+    setDecision((d) => (d ? { ...d, outcome: outcome.trim() } : null));
+    setEditingOutcome(false);
+    setSaving(false);
+  }
+
+  function handleDelete() {
+    if (!confirm("Delete this decision? This can't be undone.")) return;
+    deleteDecision(id);
+    router.push("/decisions");
   }
 
   const hasOutcome = !!decision.outcome?.trim();
