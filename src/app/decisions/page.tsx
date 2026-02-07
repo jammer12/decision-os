@@ -2,24 +2,58 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getDecisions } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
+import { fetchDecisions } from "@/lib/supabase/decisions";
 import type { Decision } from "@/lib/types";
 import { DecisionCard } from "@/components/decision-card";
+import { SignInGate } from "@/components/auth-ui";
 
 export default function DecisionsPage() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
-    setDecisions(getDecisions());
-    setMounted(true);
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (user) {
+          setSignedIn(true);
+          const list = await fetchDecisions();
+          if (!cancelled) setDecisions(list);
+        }
+      } catch {
+        // Supabase not configured or error
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (!mounted) {
+  if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
         <p className="text-sm text-[var(--muted)]">Loading…</p>
       </div>
+    );
+  }
+
+  if (!signedIn) {
+    return (
+      <SignInGate
+        title="Sign in to view your decisions"
+        message="Use Google or Apple to access your decision journal."
+        redirectTo="/"
+      />
     );
   }
 
