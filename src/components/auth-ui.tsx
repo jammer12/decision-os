@@ -22,7 +22,7 @@ export function AuthUI() {
       });
       subscription = data.subscription;
     } catch {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 0);
     }
     return () => subscription?.unsubscribe();
   }, []);
