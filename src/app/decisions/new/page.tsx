@@ -73,8 +73,9 @@ export default function NewDecisionPage() {
     return (
       <SignInGate
         title="Sign in to create a decision"
-        message="Use Google or Apple to save decisions to your account."
+        message="Sign in to save decisions to your account."
         redirectTo="/"
+        next="/decisions/new"
       />
     );
   }

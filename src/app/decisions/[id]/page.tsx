@@ -97,8 +97,9 @@ export default function DecisionDetailPage() {
     return (
       <SignInGate
         title="Sign in to view this decision"
-        message="Use Google or Apple to access your decision journal."
+        message="Sign in to access your decision journal."
         redirectTo="/"
+        next={`/decisions/${id}`}
       />
     );
   }

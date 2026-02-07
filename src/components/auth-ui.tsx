@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -44,64 +45,29 @@ export function AuthUI() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <SignInButton provider="google" />
-      <SignInButton provider="apple" />
-    </div>
-  );
-}
-
-function SignInButton({
-  provider,
-  className = "rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-60",
-}: {
-  provider: "google" | "apple";
-  className?: string;
-}) {
-  const [loading, setLoading] = useState(false);
-
-  async function handleSignIn() {
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const origin =
-        typeof window !== "undefined" ? window.location.origin : "";
-      await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${origin}/auth/callback`,
-        },
-      });
-    } catch {
-      // e.g. Supabase not configured
-    }
-    setLoading(false);
-  }
-
-  const label = provider === "google" ? "Google" : "Apple";
-
-  return (
-    <button
-      type="button"
-      onClick={handleSignIn}
-      disabled={loading}
-      className={className}
+    <Link
+      href="/signin"
+      className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-foreground)] transition-opacity hover:opacity-90"
     >
-      {loading ? "…" : label}
-    </button>
+      Sign in
+    </Link>
   );
 }
 
-/** Full-page gate when a route requires sign-in. Use when user is null after auth check. */
+/** Full-page gate when a route requires sign-in. Redirects to /signin with return URL. */
 export function SignInGate({
   title,
   message,
   redirectTo,
+  next,
 }: {
   title: string;
   message: string;
   redirectTo?: string;
+  next?: string;
 }) {
+  const signInUrl = next ? `/signin?next=${encodeURIComponent(next)}` : "/signin";
+
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 py-16 text-center">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-8 py-10 shadow-sm sm:px-12">
@@ -109,15 +75,13 @@ export function SignInGate({
           {title}
         </h2>
         <p className="mt-2 text-sm text-[var(--muted)]">{message}</p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <SignInButton
-            provider="google"
-            className="inline-flex items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-60"
-          />
-          <SignInButton
-            provider="apple"
-            className="inline-flex items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-60"
-          />
+        <div className="mt-6">
+          <a
+            href={signInUrl}
+            className="inline-flex items-center justify-center rounded-xl bg-[var(--accent)] px-8 py-3 text-sm font-medium text-[var(--accent-foreground)] transition-opacity hover:opacity-90"
+          >
+            Sign in
+          </a>
         </div>
         {redirectTo && (
           <p className="mt-6">
