@@ -31,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
       >
         <header className="border-b border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-sm sticky top-0 z-10">
-          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
+          <div className="mx-auto flex min-h-20 max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
             <Link
               href="/"
               className="flex items-center"
@@ -42,7 +42,7 @@ export default function RootLayout({
                 alt=""
                 width={160}
                 height={48}
-                className="h-6 w-auto sm:h-7"
+                className="h-[72px] w-auto sm:h-[84px]"
                 priority
               />
             </Link>
