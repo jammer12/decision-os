@@ -23,7 +23,13 @@ In the Supabase dashboard, open **SQL Editor** and run the migration:
 
 This creates the `decisions` table and Row Level Security so each user only sees their own rows.
 
-## 3. Enable Google sign-in
+## 3. (Fastest path) Enable Email sign-in
+
+1. In Supabase: **Authentication → Providers → Email** → ensure it’s **Enabled**.
+2. Optional: turn **off** “Confirm email” so new users can sign in immediately without checking their inbox. (You can turn it on later for production.)
+3. No extra config needed. The app uses email + password on `/signin` (Sign in / Create account).
+
+## 4. (Optional) Enable Google sign-in
 
 1. In Supabase: **Authentication → Providers → Google** → Enable.
 2. In [Google Cloud Console](https://console.cloud.google.com/):
@@ -33,7 +39,7 @@ This creates the `decisions` table and Row Level Security so each user only sees
      `https://<your-project-ref>.supabase.co/auth/v1/callback`
    - Copy **Client ID** and **Client secret** into Supabase Google provider.
 
-## 4. Enable Apple sign-in
+## 5. (Optional) Enable Apple sign-in
 
 1. In Supabase: **Authentication → Providers → Apple** → Enable.
 2. In [Apple Developer](https://developer.apple.com/):
@@ -44,11 +50,11 @@ This creates the `decisions` table and Row Level Security so each user only sees
 Use the Supabase docs for the exact Apple steps:  
 [Supabase: Apple OAuth](https://supabase.com/docs/guides/auth/social-login/auth-apple).
 
-## 5. Redirect URL for production
+## 6. Redirect URL for production
 
 In Supabase **Authentication → URL Configuration**, set:
 
 - **Site URL**: e.g. `https://app.nerdyexecutive.com`
 - **Redirect URLs**: add `https://app.nerdyexecutive.com/auth/callback`
 
-After this, **Sign in with Google** and **Sign in with Apple** in the app will work, and decisions will be stored in Supabase per user.
+After this, **email sign-in** works immediately. If you enabled Google/Apple, those will work too. Decisions are stored in Supabase per user.
