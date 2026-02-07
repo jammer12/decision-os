@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Decision OS — Your operating system for better decisions",
+  title: "Nerdy Executive - Decision OS — Experience better decisions",
   description:
     "Capture, frame, and reflect on your decisions. Think clearly. Choose confidently.",
   themeColor: "#0c0a09",
