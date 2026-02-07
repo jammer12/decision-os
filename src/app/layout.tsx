@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import { AuthUI } from "@/components/auth-ui";
+import { HeaderNav } from "@/components/header-nav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -48,21 +48,7 @@ export default function RootLayout({
                 priority
               />
             </Link>
-            <nav className="flex items-center gap-6">
-              <Link
-                href="/decisions"
-                className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-              >
-                Decisions
-              </Link>
-              <Link
-                href="/decisions/new"
-                className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-foreground)] transition-opacity hover:opacity-90"
-              >
-                New decision
-              </Link>
-              <AuthUI />
-            </nav>
+            <HeaderNav />
           </div>
         </header>
         <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
