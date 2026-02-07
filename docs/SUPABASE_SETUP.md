@@ -25,6 +25,9 @@ In the Supabase dashboard, open **SQL Editor** and run the migrations in order:
 2. **If decisions are visible to everyone** (e.g. you created the table earlier without RLS), run `supabase/migrations/002_decisions_rls_policies.sql`  
    This enables RLS and (re)creates the policies. Safe to run multiple times.
 
+3. **For user profiles derived from decisions**, run `supabase/migrations/003_user_profiles.sql`  
+   This creates the `user_profiles` table with `user_profile_algo` (JSON text), `decisions_count`, and `updated_at`. The app updates it only when the user adds a new decision.
+
 The app always saves new decisions with the signed-in user’s `user_id`; RLS ensures no user can read or change another user’s decisions.
 
 ## 3. (Fastest path) Enable Email sign-in

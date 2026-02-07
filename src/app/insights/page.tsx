@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { SignInGate } from "@/components/auth-ui";
+import { INSIGHTS_CACHE_KEY } from "@/lib/insights-cache";
 
 type InsightsData = {
   topicsCount: number;
@@ -11,6 +12,33 @@ type InsightsData = {
   insights: string;
   raw?: string;
 };
+
+function getCachedInsights(userId: string): InsightsData | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(INSIGHTS_CACHE_KEY);
+    if (!raw) return null;
+    const { userId: cachedUserId, data } = JSON.parse(raw) as {
+      userId: string;
+      data: InsightsData;
+    };
+    return cachedUserId === userId ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedInsights(userId: string, data: InsightsData): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      INSIGHTS_CACHE_KEY,
+      JSON.stringify({ userId, data })
+    );
+  } catch {
+    // ignore
+  }
+}
 
 export default function InsightsPage() {
   const [mounted, setMounted] = useState(false);
@@ -30,6 +58,13 @@ export default function InsightsPage() {
           if (!cancelled) setLoading(false);
           return;
         }
+        fetch("/api/user-profile", { method: "POST" }).catch(() => {});
+        const cached = getCachedInsights(u.id);
+        if (cached) {
+          if (!cancelled) setData(cached);
+          if (!cancelled) setLoading(false);
+          return;
+        }
         const res = await fetch("/api/insights");
         if (cancelled) return;
         if (!res.ok) {
@@ -39,7 +74,10 @@ export default function InsightsPage() {
           return;
         }
         const json = await res.json();
-        if (!cancelled) setData(json);
+        if (!cancelled) {
+          setData(json);
+          setCachedInsights(u.id, json);
+        }
       } catch {
         if (!cancelled) setError("Failed to load insights.");
       } finally {

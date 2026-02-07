@@ -225,6 +225,16 @@ function MeasurementDecisionForm({ onBack }: { onBack: () => void }) {
         options: [],
         outcome: undefined,
       });
+      try {
+        await Promise.race([
+          fetch("/api/user-profile", { method: "POST" }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), 15000)
+          ),
+        ]);
+      } catch {
+        // Profile update is best-effort; still redirect
+      }
       router.push(`/decisions/${decision.id}`);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Failed to save.");

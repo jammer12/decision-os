@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { clearInsightsCache } from "@/lib/insights-cache";
 import type { User } from "@supabase/supabase-js";
 
 const MAIN_SITE_URL = "https://www.nerdyexecutive.com";
@@ -104,6 +105,7 @@ function SignOutButton() {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
+      clearInsightsCache();
     } catch {
       // ignore
     }
