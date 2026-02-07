@@ -41,8 +41,18 @@ export default function SignInPage() {
         }
       }
       window.location.href = "/decisions";
-    } catch {
-      setMessage({ type: "error", text: "Something went wrong. Try again." });
+    } catch (err) {
+      console.error("Sign-in error:", err);
+      const text =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "Something went wrong. Try again.";
+      setMessage({
+        type: "error",
+        text: text + " (Check the browser console for details.)",
+      });
     } finally {
       setLoading(false);
     }
