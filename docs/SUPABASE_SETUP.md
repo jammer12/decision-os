@@ -54,11 +54,13 @@ The app always saves new decisions with the signed-in user’s `user_id`; RLS en
 Use the Supabase docs for the exact Apple steps:  
 [Supabase: Apple OAuth](https://supabase.com/docs/guides/auth/social-login/auth-apple).
 
-## 6. Redirect URL for production
+## 6. Redirect URLs for production
 
 In Supabase **Authentication → URL Configuration**, set:
 
 - **Site URL**: e.g. `https://app.nerdyexecutive.com`
-- **Redirect URLs**: add `https://app.nerdyexecutive.com/auth/callback`
+- **Redirect URLs**: add both
+  - `https://app.nerdyexecutive.com/auth/callback`
+  - `https://app.nerdyexecutive.com/reset-password` (for forgot-password emails)
 
 After this, **email sign-in** works immediately. If you enabled Google/Apple, those will work too. Decisions are stored in Supabase per user.

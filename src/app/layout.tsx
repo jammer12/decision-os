@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: "Decision OS — Your operating system for better decisions",
   description:
     "Capture, frame, and reflect on your decisions. Think clearly. Choose confidently.",
+  themeColor: "#0c0a09",
 };
 
 export default function RootLayout({
@@ -27,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-[#0c0a09]">
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
       >

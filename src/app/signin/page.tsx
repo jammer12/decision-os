@@ -111,6 +111,16 @@ export default function SignInPage() {
               At least 6 characters
             </p>
           )}
+          {mode === "signin" && (
+            <p className="mt-2 text-right">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-[var(--accent)] hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </p>
+          )}
         </div>
 
         {message && (
