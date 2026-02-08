@@ -83,17 +83,19 @@ Your full response should give the exec: (a) how to approach the problem, (b) wh
 This is a Measurement Strategy decision. In your paragraphs, prioritize: causal clarity over correlation; avoidance of vanity metrics; alignment between metrics and decisions; explicit behavioral incentives and risks; governance and misuse prevention. Where relevant, call out metrics that are proxies rather than outcomes, risk Goodhart's Law, or cannot realistically change decisions. If confidence is overstated in the context, name it as a risk in plain language.`;
 
   try {
-    const completion = await openai.chat.completions.create({
+    // OpenAI Responses API: single agentic run with optional web search.
+    // Model can validate input, optionally call web_search for methodologies/whitepapers, then produce the final recommendation.
+    const response = await openai.responses.create({
       model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemContent },
-        { role: "user", content: userContent },
-      ],
-      max_tokens: 2048,
+      instructions: systemContent,
+      input: userContent,
+      max_output_tokens: 2048,
+      tools: [{ type: "web_search_preview" }],
+      tool_choice: "auto",
     });
 
     const text =
-      completion.choices[0]?.message?.content?.trim() ||
+      response.output_text?.trim() ||
       "No response generated. Please try again.";
 
     return NextResponse.json({ advice: text });
